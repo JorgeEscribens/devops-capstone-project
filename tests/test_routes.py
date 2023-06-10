@@ -153,9 +153,9 @@ class TestAccountService(TestCase):
 
     def test_list_all_accounts(self):
         """It should return all existing accounts"""
-        accounts = self._create_accounts(20);
+        accounts = self._create_accounts(20)
         ep_accounts = self.client.get(BASE_URL, content_type="application/json")
-        ep_arr_accounts = ep_accounts.get_json();
+        ep_arr_accounts = ep_accounts.get_json()
         self.assertEqual(len(accounts), len(ep_arr_accounts))
 
     def test_update_account(self):
@@ -206,7 +206,7 @@ class TestAccountService(TestCase):
 
     def test_list_delete_account(self):
         """It should delete an existing account"""
-        account = self._create_accounts(1)[0];
+        account = self._create_accounts(1)[0]
         ep_accounts = self.client.get(BASE_URL, content_type="application/json")
         ep_arr_accounts = ep_accounts.get_json();
         self.assertEqual(1, len(ep_arr_accounts))
@@ -241,4 +241,5 @@ class TestAccountService(TestCase):
             'Access-Control-Allow-Origin': '*'
         }
         for key, value in headers.items():
-            self.assertEqual(response.headers.get(key), value)            
+            self.assertEqual(response.headers.get(key), value)
+            
