@@ -208,12 +208,12 @@ class TestAccountService(TestCase):
         """It should delete an existing account"""
         account = self._create_accounts(1)[0]
         ep_accounts = self.client.get(BASE_URL, content_type="application/json")
-        ep_arr_accounts = ep_accounts.get_json();
+        ep_arr_accounts = ep_accounts.get_json()
         self.assertEqual(1, len(ep_arr_accounts))
         response_del = self.client.delete(f"{BASE_URL}/{account.id}", content_type="application/json")
         self.assertEqual(response_del.status_code, status.HTTP_204_NO_CONTENT)
         ep_accounts_del = self.client.get(BASE_URL, content_type="application/json")
-        ep_arr_accounts_del = ep_accounts_del.get_json();
+        ep_arr_accounts_del = ep_accounts_del.get_json()
         self.assertEqual(len(ep_arr_accounts_del), 0)
 
     def test_method_not_allowed(self):
@@ -242,4 +242,3 @@ class TestAccountService(TestCase):
         }
         for key, value in headers.items():
             self.assertEqual(response.headers.get(key), value)
-            
