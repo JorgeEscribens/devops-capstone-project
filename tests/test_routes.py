@@ -124,3 +124,96 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
+    def test_read_an_account(self):
+        """It should Read an Account when sending an existing Id"""
+        account = AccountFactory()
+        response = self.client.post(
+            BASE_URL,
+            json=account.serialize(),
+            content_type="application/json"
+        )
+        new_account = response.get_json()
+        new_account_id = new_account["id"]
+        responseget = self.client.get(f"{BASE_URL}/{new_account_id}", content_type="application/json")
+        self.assertEqual(responseget.status_code, status.HTTP_200_OK)
+        get_account = responseget.get_json()
+        self.assertEqual(get_account["name"], account.name)
+        self.assertEqual(get_account["email"], account.email)
+        self.assertEqual(get_account["address"], account.address)
+        self.assertEqual(get_account["phone_number"], account.phone_number)
+        self.assertEqual(get_account["date_joined"], str(account.date_joined))
+
+    def test_read_an_account_notfound(self):
+        """It should return 404 when an account is not found"""
+        responseget = self.client.get(f"{BASE_URL}/3", content_type="application/json")
+        self.assertEqual(responseget.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_all_accounts(self):
+        """It should return all existing accounts"""
+        accounts = self._create_accounts(20);
+        ep_accounts = self.client.get(BASE_URL, content_type="application/json")
+        ep_arr_accounts = ep_accounts.get_json();
+        self.assertEqual(len(accounts), len(ep_arr_accounts))
+
+    def test_update_account(self):
+        """It should Update a new Account"""
+        account = AccountFactory()
+        response = self.client.post(
+            BASE_URL,
+            json=account.serialize(),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Make sure location header is set
+        location = response.headers.get("Location", None)
+        self.assertIsNotNone(location)
+
+        # Check the data is correct
+        new_account = response.get_json()
+
+        # Change any data
+        new_account["name"] = "John Doe Test New"
+
+        response_up = self.client.put(
+            f"{BASE_URL}/{new_account['id']}",
+            json=new_account,
+            content_type="application/json"
+        )
+        self.assertEqual(response_up.status_code, status.HTTP_200_OK)
+
+        up_account = response_up.get_json()
+
+        self.assertEqual(up_account["name"], new_account["name"])
+
+    def test_bad_request_update(self):
+        """It should not Update an Account when user not found"""
+        response = self.client.put(f"{BASE_URL}/3", json={"name": "not enough data"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_unsupported_media_type_update(self):
+        """It should not Update an Account when sending the wrong media type"""
+        account = AccountFactory()
+        response = self.client.put(
+            f"{BASE_URL}/3",
+            json=account.serialize(),
+            content_type="test/html"
+        )
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_list_delete_account(self):
+        """It should delete an existing account"""
+        account = self._create_accounts(1)[0];
+        ep_accounts = self.client.get(BASE_URL, content_type="application/json")
+        ep_arr_accounts = ep_accounts.get_json();
+        self.assertEqual(1, len(ep_arr_accounts))
+        response_del = self.client.delete(f"{BASE_URL}/{account.id}", content_type="application/json")
+        self.assertEqual(response_del.status_code, status.HTTP_204_NO_CONTENT)
+        ep_accounts_del = self.client.get(BASE_URL, content_type="application/json")
+        ep_arr_accounts_del = ep_accounts_del.get_json();
+        self.assertEqual(len(ep_arr_accounts_del), 0)
+
+    def test_method_not_allowed(self):
+        """It should not allow an illegal method call"""
+        resp = self.client.delete(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
